@@ -11,8 +11,8 @@ from deepface import DeepFace
 import matplotlib.pyplot as plt
 import cv2
 
-# Force CPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# # Force CPU
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 CUSTOM_MODEL_FILENAME = "emotion_cnn.pth"
 emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']

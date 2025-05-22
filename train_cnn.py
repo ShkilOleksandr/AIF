@@ -65,13 +65,20 @@ def evaluate(model, dataloader, device):
 # Main Script
 # =========================
 if __name__ == "__main__":
+    device = torch.device("cpu")
+    device = torch.device("mps" if torch.backends.mps.is_available() else device.type)
+    device = torch.device("cuda" if torch.cuda.is_available() else device.type)
+    print(f"Using device: {device.type}")
+    
+    print("Loading data...")
+    
     df = pd.read_csv("fer2013.csv")
     train_df = df[df['Usage'] == 'Training']
     val_df = df[df['Usage'] == 'PublicTest']
 
     class_counts = train_df['emotion'].value_counts().sort_index()
     class_weights = 1. / class_counts
-    class_weights_tensor = torch.tensor(class_weights.values, dtype=torch.float32)
+    class_weights_tensor = torch.tensor(class_weights.values, dtype=torch.float32).to(device)
 
     transform = transforms.Compose([
         transforms.ToPILImage(),
@@ -88,8 +95,6 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_data, batch_size=64, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=64)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     model = models.resnet18(pretrained=True)
     model.fc = nn.Linear(model.fc.in_features, 7)
     model = model.to(device)
@@ -97,6 +102,8 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss(weight=class_weights_tensor.to(device), label_smoothing=0.1)
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+
+    print("Starting training...")
 
     loss_history = []
     for epoch in range(25):
