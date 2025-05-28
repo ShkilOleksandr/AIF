@@ -143,3 +143,4 @@ fer2013/
 # Files
 captured.jpg
 emotion_cnn.pth
+*.pth
