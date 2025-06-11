@@ -1,14 +1,14 @@
 # train_emotion_model.py
-import pandas as pd
-import numpy as np
-import torch
+import pandas as pd # read csv data
+import numpy as np # numerical operations
+import torch # deep learning framework
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import transforms, models
-from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import classification_report
-import matplotlib.pyplot as plt
-import time
+from torchvision import transforms, models # pre-trained models
+from torch.utils.data import Dataset, DataLoader # data loading utilities
+from sklearn.metrics import classification_report # evaluation metrics
+import matplotlib.pyplot as plt # plotting library
+import time # time measurement
 
 # =========================
 # Dataset Class
@@ -75,6 +75,7 @@ if __name__ == "__main__":
     df = pd.read_csv("fer2013.csv")
     train_df = df[df['Usage'] == 'Training']
     val_df = df[df['Usage'] == 'PublicTest']
+    fin_val_df = df[df['Usage'] == 'PrivateTest']
 
     class_counts = train_df['emotion'].value_counts().sort_index()
     class_weights = 1. / class_counts
@@ -88,15 +89,25 @@ if __name__ == "__main__":
         transforms.ColorJitter(brightness=0.2, contrast=0.2),
         transforms.ToTensor(),
     ])
+    
+    # transform = transforms.Compose([
+    #     transforms.ToPILImage(),
+    #     transforms.Resize((224, 224)),
+    #     transforms.ToTensor(),
+    # ])
 
     train_data = FERDataset(train_df, transform)
     val_data = FERDataset(val_df, transform)
+    fin_val_data = FERDataset(fin_val_df, transform)
 
     train_loader = DataLoader(train_data, batch_size=64, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=64)
+    fin_val_loader = DataLoader(fin_val_data, batch_size=64)
+    
 
     model = models.resnet18(pretrained=True)
     model.fc = nn.Linear(model.fc.in_features, 7)
+    
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss(weight=class_weights_tensor.to(device), label_smoothing=0.1)
@@ -104,6 +115,22 @@ if __name__ == "__main__":
     # for whatever reason I can't find verbose parameter - Max
     #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+
+    while True:
+        print("Type 1 to start training")
+        print("Type 2 to load a ready model and evaluate it against private test set")
+        print("Type 9 to exit")
+        choice = input("Enter your choice: ")
+        if choice == "2":
+            model.load_state_dict(torch.load("emotion_cnn.pth", map_location=device))
+            print("Evaluating on final validation set...")
+            evaluate(model, fin_val_loader, device)
+        elif choice == "9":
+            exit()
+        elif choice != "1":
+            print("Invalid choice.")
+        else:
+            break
 
     print("Starting training...")
 

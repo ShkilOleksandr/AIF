@@ -1,15 +1,15 @@
-import os
-import tkinter as tk
+import os # operations on paths
+import tkinter as tk # GUI toolkit
 from tkinter import filedialog, messagebox, ttk
-from PIL import Image, ImageTk
-import torch
+from PIL import Image, ImageTk # image processing and display
+import torch # PyTorch for deep learning
 import torchvision.transforms as transforms
 import torch.nn as nn
-import torchvision.models as models
-import numpy as np
-from deepface import DeepFace
-import matplotlib.pyplot as plt
-import cv2
+import torchvision.models as models # pre-trained models
+import numpy as np # numerical operations
+from deepface import DeepFace # DeepFace for emotion analysis
+import matplotlib.pyplot as plt # plotting library
+import cv2 # OpenCV for webcam capture
 
 # # Force CPU
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
